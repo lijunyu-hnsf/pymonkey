@@ -14,8 +14,8 @@ class mySocket():
         self.sock.connect((self.host, self.port))
 
     def checkOk(self, cmd):
-        res = self.recv(1024)
-        print(str(cmd).replace("\n","") + "==>", res.decode("utf-8").replace("\n",""))
+        res = self.recv(4)
+        print(str(cmd).replace("\n", "") + "==>", res.decode("utf-8").replace("\n", ""))
         return res
 
     def recv(self, num):
@@ -61,7 +61,7 @@ class adbClient(mySocket):
     def adbSend(self,msg,ischeckok = False,isreconnect=False,isreturn=False):
         b = bytearray(msg, 'utf-8')
         msg = b'%04x%s'%(len(b),b)
-        self._send(msg,ischeckok = ischeckok,isreconnect=isreconnect,isreturn=isreturn)
+        return self._send(msg,ischeckok = ischeckok,isreconnect=isreconnect,isreturn=isreturn)
 
     def getDevice(self,sn):
         d = device()
@@ -73,6 +73,7 @@ class adbClient(mySocket):
         d.adbsk = self
         d.name = sn
         return d
+
 
 class device():
     def __init__(self):
@@ -111,6 +112,7 @@ class monkeyClient(mySocket):
     def __del__(self):
         try:
             self.quit()
+            os.system("adb disconnect %s" % (self.name))
         except:
             pass
 
@@ -128,6 +130,9 @@ class monkeyClient(mySocket):
     def quit(self):
         self.mkSend("quit")
 
+    def tap(self,x,y):
+        self.mkSend("tap %d %d" % (x, y))
+
     def type(self,msg):
         self.mkSend("type %s"%(msg))
 
@@ -139,7 +144,7 @@ class monkeyClient(mySocket):
 
     def touch_down(self,x,y):
         self.mkSend("touch down %d %d"%(x,y))
-
+ 
 class viewClient(mySocket):
     def __init__(self,sn,port=4939,adbsk = adbClient()):
         self.name = sn
